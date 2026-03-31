@@ -21,6 +21,15 @@ Item {
     readonly property real barFontSize: Style.getBarFontSizeForScreen(screenName)
     readonly property var main: pluginApi?.mainInstance ?? null
 
+    readonly property bool useThemedIdleColor: pluginApi?.pluginSettings?.useThemedIdleColor ?? true
+    readonly property bool showIdlePellet: pluginApi?.pluginSettings?.showIdlePellet ?? true
+
+    readonly property var activePacColor: "#F6D32D"
+    readonly property var idlePacColor: useThemedIdleColor
+                                       ? (Color?.mOnSurface ?? Style?.textColor ?? "#E6E6E6")
+                                       : "#E6E6E6"
+    readonly property var pelletColor: "rgba(255,255,255,0.55)"
+
     property bool initialAnimActive: false
     property bool hoverAnimActive: false
     property bool isEating: true
@@ -52,6 +61,15 @@ Item {
 
     implicitWidth: contentWidth
     implicitHeight: contentHeight
+
+    onActivePacColorChanged: pacCanvas.requestPaint()
+    onIdlePacColorChanged: pacCanvas.requestPaint()
+    onPelletColorChanged: pacCanvas.requestPaint()
+    onUseThemedIdleColorChanged: pacCanvas.requestPaint()
+    onShowIdlePelletChanged: pacCanvas.requestPaint()
+    onHasUpdatesChanged: pacCanvas.requestPaint()
+    onShowFullAnimChanged: pacCanvas.requestPaint()
+    onMouthOpenChanged: pacCanvas.requestPaint()
 
     function resetAnimation() {
         eatenChars = 0;
@@ -101,7 +119,7 @@ Item {
             return "System is up to date";
 
         return main.updateCount + " pending update" + (main.updateCount !== 1 ? "s" : "")
-               + "\nHover to replay animation\nClick to view packages";
+               + "\nHover to replay animation\nClick to view packages\nRight-click for options";
     }
 
     function characterVisible(index) {
@@ -152,7 +170,6 @@ Item {
         running: root.showFullAnim
         onTriggered: {
             root.mouthOpen = !root.mouthOpen;
-            pacCanvas.requestPaint();
         }
     }
 
@@ -168,13 +185,13 @@ Item {
 
     SequentialAnimation {
         id: chompAnim
-        ScriptAction { script: { root.mouthOpen = false; pacCanvas.requestPaint(); } }
+        ScriptAction { script: { root.mouthOpen = false; } }
         PauseAnimation { duration: 160 }
-        ScriptAction { script: { root.mouthOpen = true; pacCanvas.requestPaint(); } }
+        ScriptAction { script: { root.mouthOpen = true; } }
         PauseAnimation { duration: 160 }
-        ScriptAction { script: { root.mouthOpen = false; pacCanvas.requestPaint(); } }
+        ScriptAction { script: { root.mouthOpen = false; } }
         PauseAnimation { duration: 160 }
-        ScriptAction { script: { root.mouthOpen = true; pacCanvas.requestPaint(); } }
+        ScriptAction { script: { root.mouthOpen = true; } }
     }
 
     SequentialAnimation {
@@ -244,28 +261,23 @@ Item {
                         const cx = w / 2;
                         const cy = h / 2;
 
-                        const activePacColor = "#F6D32D";
-                        const idlePacColor =
-                            Color?.mPrimary
-                            ?? Color?.mOnSurface
-                            ?? Style?.textColor
-                            ?? "#E6E6E6";
-
                         const pacColor = (root.showFullAnim || root.hasUpdates)
-                                         ? activePacColor
-                                         : idlePacColor;
+                                         ? root.activePacColor
+                                         : root.idlePacColor;
 
                         if (!root.hasUpdates) {
                             const mouthAngle = root.mouthOpen ? 0.24 : 0.05;
 
-                            const pelletX = w - 3;
-                            const pelletY = cy;
-                            const pelletR = Math.max(1.2, r * 0.10);
+                            if (root.showIdlePellet) {
+                                const pelletX = w - 3;
+                                const pelletY = cy;
+                                const pelletR = Math.max(1.2, r * 0.10);
 
-                            ctx.fillStyle = "rgba(255,255,255,0.55)";
-                            ctx.beginPath();
-                            ctx.arc(pelletX, pelletY, pelletR, 0, Math.PI * 2);
-                            ctx.fill();
+                                ctx.fillStyle = root.pelletColor;
+                                ctx.beginPath();
+                                ctx.arc(pelletX, pelletY, pelletR, 0, Math.PI * 2);
+                                ctx.fill();
+                            }
 
                             ctx.fillStyle = pacColor;
                             ctx.beginPath();
@@ -359,12 +371,49 @@ Item {
         }
     }
 
+    NPopupContextMenu {
+        id: contextMenu
+
+        model: [
+            {
+                "label": "Check now",
+                "action": "refresh",
+                "icon": "refresh"
+            },
+            {
+                "label": "Open updates panel",
+                "action": "panel",
+                "icon": "list"
+            },
+            {
+                "label": "Plugin settings",
+                "action": "settings",
+                "icon": "settings"
+            }
+        ]
+
+        onTriggered: action => {
+            contextMenu.close();
+            PanelService.closeContextMenu(screen);
+
+            if (action === "refresh") {
+                root.main?.runCheck?.();
+            } else if (action === "panel") {
+                if (pluginApi && root.hasUpdates)
+                    pluginApi.togglePanel(root.screen, root);
+            } else if (action === "settings") {
+                BarService.openPluginSettings(screen, pluginApi.manifest);
+            }
+        }
+    }
+
     MouseArea {
         id: mouseArea
         anchors.fill: parent
         z: 99
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
 
         onEntered: {
             TooltipService.show(root, root.buildTooltip(), BarService.getTooltipDirection());
@@ -386,11 +435,19 @@ Item {
             }
         }
 
-        onClicked: {
-            if (!pluginApi || !root.hasUpdates)
+        onClicked: mouse => {
+            if (mouse.button === Qt.RightButton) {
+                TooltipService.hide();
+                PanelService.showContextMenu(contextMenu, root, screen);
                 return;
+            }
 
-            pluginApi.togglePanel(root.screen, root);
+            if (mouse.button === Qt.LeftButton) {
+                if (!pluginApi || !root.hasUpdates)
+                    return;
+
+                pluginApi.togglePanel(root.screen, root);
+            }
         }
     }
 }

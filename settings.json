@@ -1,0 +1,7 @@
+{
+  "checkIntervalMs": 7200000,
+  "initialAnimationMs": 120000,
+  "idleChompMs": 30000,
+  "useThemedIdleColor": true,
+  "showIdlePellet": true
+}

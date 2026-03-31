@@ -1,0 +1,27 @@
+{
+  "name": "Update Checker",
+  "description": "Pac-Man themed system update checker for pacman-based distros.",
+  "settings": {
+    "title": "Update Checker Settings",
+    "check-interval": {
+      "label": "Check interval",
+      "desc": "How often the widget checks for updates."
+    },
+    "initial-animation": {
+      "label": "Initial animation duration",
+      "desc": "How long Pac-Man animates after updates are detected."
+    },
+    "idle-chomp": {
+      "label": "Idle chomp interval",
+      "desc": "How often Pac-Man chomps when already up to date."
+    },
+    "themed-idle-color": {
+      "label": "Use themed idle icon color",
+      "desc": "When disabled, the up-to-date Pac-Man icon uses a fixed neutral color instead of the current theme color."
+    },
+    "show-idle-pellet": {
+      "label": "Show idle pellet",
+      "desc": "Displays the small pellet in the up-to-date idle state."
+    }
+  }
+}
