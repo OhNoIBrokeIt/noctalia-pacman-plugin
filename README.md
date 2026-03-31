@@ -178,7 +178,7 @@ chmod +x updates-check.sh
 
 ## Screenshots
 
-Add screenshots here later if publishing publicly.
+Placeolder for screenshot
 
 Example path:
 
