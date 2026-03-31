@@ -12,6 +12,7 @@ Displays update availability directly in the bar using an animated Pac-Man indic
 - Idle animation when system is up to date
 - Optional themed idle icon color
 - Optional idle pellet display
+- Native Noctalia settings panel
 - Configurable refresh timing
 - Configurable animation timing
 - Right-click context menu actions
@@ -50,10 +51,11 @@ Example:
 git clone https://github.com/OhNoIBrokeIt/noctalia-update-checker ~/.config/noctalia/plugins/update-checker
 ```
 
-Reload Noctalia:
+Restart Noctalia:
 
 ```bash
-qs reload
+killall qs
+qs -c noctalia-shell
 ```
 
 Then add **Update Checker** from the bar widget picker.
@@ -155,10 +157,11 @@ sudo pacman -S pacman-contrib
 
 ### Widget not visible
 
-Reload Noctalia:
+Restart Noctalia:
 
 ```bash
-qs reload
+killall qs
+qs -c noctalia-shell
 ```
 
 Then re-add widget from bar settings.
