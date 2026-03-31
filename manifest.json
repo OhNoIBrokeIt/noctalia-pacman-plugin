@@ -1,0 +1,21 @@
+{
+  "id": "update-checker",
+  "name": "Update Checker",
+  "version": "1.1.0",
+  "minNoctaliaVersion": "3.6.0",
+  "author": "ohnoibrokeit",
+  "license": "MIT",
+  "description": "Pac-Man themed system update checker for pacman-based distros.",
+  "entryPoints": {
+    "main": "Main.qml",
+    "barWidget": "BarWidget.qml",
+    "panel": "Panel.qml"
+  },
+  "metadata": {
+    "defaultSettings": {
+      "checkIntervalMs": 7200000,
+      "initialAnimationMs": 120000,
+      "idleChompMs": 30000
+    }
+  }
+}
